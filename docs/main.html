@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Qixin He" />
+
+
+<title>Var-repeatability</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">varSeq-repeatability</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Var-repeatability</h1>
+<h4 class="author"><em>Qixin He</em></h4>
+<h4 class="date"><em>7/23/2018</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-07-25</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>R Markdown file:</strong> up-to-date </summary></p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180723)</code> </summary></p>
+<p>The command <code>set.seed(20180723)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> <a href="https://github.com/heqixin/varSeq/tree/220c10eea2aa3a5d5c7dbf12a7634dc49d08fe64" target="_blank">220c10e</a> </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    .DS_Store
+    Ignored:    code/.DS_Store
+    Ignored:    data/.DS_Store
+    Ignored:    docs/figure/
+
+Untracked files:
+    Untracked:  data/RepeatSeqs.fasta
+    Untracked:  data/RepeatSeqs_renamed.fasta
+    Untracked:  data/RepeatSeqs_renamed_blast6out.txt
+    Untracked:  data/RepeatSeqs_renamed_centroids.fasta
+    Untracked:  data/RepeatSeqs_renamed_otuTable.txt
+    Untracked:  data/RepeatSeqs_renamed_otuTable_binary.txt
+    Untracked:  data/RepeatSeqs_renamed_unqiues.fasta
+
+Unstaged changes:
+    Deleted:    code/main.Rmd
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<details> <summary> <small><strong>Expand here to see past versions:</strong></small> </summary>
+<ul>
+<table style="border-collapse:separate; border-spacing:5px;">
+<thead>
+<tr>
+<th style="text-align:left;">
+File
+</th>
+<th style="text-align:left;">
+Version
+</th>
+<th style="text-align:left;">
+Author
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:left;">
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Rmd
+</td>
+<td style="text-align:left;">
+<a href="https://github.com/heqixin/varSeq/blob/220c10eea2aa3a5d5c7dbf12a7634dc49d08fe64/analysis/main.Rmd" target="_blank">220c10e</a>
+</td>
+<td style="text-align:left;">
+Qixin He
+</td>
+<td style="text-align:left;">
+2018-07-25
+</td>
+<td style="text-align:left;">
+incorporated
+</td>
+</tr>
+</tbody>
+</table>
+</ul>
+<p></details></p>
+<hr />
+<div id="load-necessary-packages" class="section level2">
+<h2>load necessary packages</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+</div>
+<div id="load-var-repeatability-table" class="section level2">
+<h2>load var repeatability table</h2>
+<pre class="r"><code>repSeq&lt;-read.table(&quot;~/Dropbox/Shazia/varSeq-repeatability/data/RepeatSeqs_renamed_otuTable.txt&quot;, header = T, sep = &quot;\t&quot;)
+repSeq&lt;-as.tibble(repSeq)
+S1Rep&lt;-repSeq %&gt;% select(contains(&quot;S1MRS&quot;))
+S2Rep&lt;-repSeq %&gt;% select(contains(&quot;S2MRS&quot;))</code></pre>
+<pre><code>[1] &quot;S1MRS0163.MID108.108.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0054.MID106.106.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS1015.MID91.91.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0441.MID04.04.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0698.MID47.47.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0208.MID109.109.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0666.MID42.42.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0556.MID15.15.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0573.MID20.20.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0669.MID43.43.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0542.MID08.08.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0268.MID110.110.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0926.MID77.77.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0889.MID69.69.P1.dec13&quot;
+[1] 2
+[1] &quot;S1MRS1004.MID88.88.P2.dec13&quot;
+[1] 2
+[1] &quot;S1MRS1067.MID100.100.P2.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0559.MID16.16.P2.dec13&quot;
+[1] 2
+[1] &quot;S1MRS0201.MID108.108.P2.dec13&quot;
+[1] 2
+[1] &quot;S1MRS1941.MID99.99.P1.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1860.MID86.86.P1.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1464.MID42.42.P2.jan14&quot;
+[1] 2
+[1] &quot;S1MRS2000.MID106.106.P2.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1631.MID62.62.P3.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1478.MID44.44.P4.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1401.MID33.33.P4.jan14&quot;
+[1] 2
+[1] &quot;S1MRS1949.MID99.99.P4.jan14&quot;
+[1] 2
+[1] &quot;S1MRS0443.MID86.86.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0190.MID42.42.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0032.MID08.08.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0354.MID74.74.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0446.MID87.87.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0340.MID72.72.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0401.MID76.76.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0228.MID49.49.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0453.MID88.88.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0237.MID51.51.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0234.MID50.50.P1.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0405.MID77.77.P2.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0421.MID79.79.P2.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0407.MID78.78.P2.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0016.MID03.03.P2.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0430.MID82.82.P2.nov13&quot;
+[1] 2
+[1] &quot;S1MRS0644.MID86.86.P6.dec15&quot;
+[1] 2
+[1] &quot;S2MRS0058.MID5.5.P1.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1113.MID51.51.P1.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1462.MID71.71.P1.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1343.MID66.66.P1.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1516.MID73.73.P2.dec15&quot;
+[1] 2
+[1] &quot;S2MRS2221.MID100.100.P2.dec15&quot;
+[1] 2
+[1] &quot;S2MRS0988.MID45.45.P2.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1814.MID85.85.P3.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1420.MID69.69.P3.dec15&quot;
+[1] 2
+[1] &quot;S2MRS0153.MID11.11.P3.dec15&quot;
+[1] 2
+[1] &quot;S2MRS0190.MID13.13.P4.dec15&quot;
+[1] 2
+[1] &quot;S2MRS2365.MID105.105.P4.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1241.MID60.60.P5.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1486.MID71.71.P5.dec15&quot;
+[1] 2
+[1] &quot;S2MRS1131.MID51.51.P5.dec15&quot;
+[1] 2</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  common = col_integer(),
+  A = col_integer(),
+  B = col_integer(),
+  percMin = col_double(),
+  Acommon = col_integer(),
+  Bcommon = col_integer(),
+  nameA = col_character(),
+  nameB = col_character()
+)</code></pre>
+<p><img src="figure/main.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.5.0 (2018-04-23)
+Platform: x86_64-apple-darwin15.6.0 (64-bit)
+Running under: macOS High Sierra 10.13.4
+
+Matrix products: default
+BLAS: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRblas.0.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/3.5/Resources/lib/libRlapack.dylib
+
+locale:
+[1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] bindrcpp_0.2.2  forcats_0.3.0   stringr_1.3.1   dplyr_0.7.5    
+ [5] purrr_0.2.5     readr_1.1.1     tidyr_0.8.1     tibble_1.4.2   
+ [9] ggplot2_2.2.1   tidyverse_1.2.1
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_0.2.4  reshape2_1.4.3    haven_1.1.1      
+ [4] lattice_0.20-35   colorspace_1.3-2  htmltools_0.3.6  
+ [7] yaml_2.1.19       rlang_0.2.1       R.oo_1.22.0      
+[10] pillar_1.2.3      foreign_0.8-70    glue_1.2.0       
+[13] R.utils_2.6.0     modelr_0.1.2      readxl_1.1.0     
+[16] bindr_0.1.1       plyr_1.8.4        munsell_0.4.3    
+[19] gtable_0.2.0      workflowr_1.1.1   cellranger_1.1.0 
+[22] rvest_0.3.2       R.methodsS3_1.7.1 psych_1.8.4      
+[25] evaluate_0.10.1   knitr_1.20        parallel_3.5.0   
+[28] broom_0.4.4       Rcpp_0.12.17      backports_1.1.2  
+[31] scales_0.5.0      jsonlite_1.5      mnormt_1.5-5     
+[34] hms_0.4.2         digest_0.6.15     stringi_1.2.2    
+[37] grid_3.5.0        rprojroot_1.3-2   cli_1.0.0        
+[40] tools_3.5.0       magrittr_1.5      lazyeval_0.2.1   
+[43] crayon_1.3.4      whisker_0.3-2     pkgconfig_2.0.1  
+[46] xml2_1.2.0        lubridate_1.7.4   rstudioapi_0.7   
+[49] assertthat_0.2.0  rmarkdown_1.9     httr_1.3.1       
+[52] R6_2.2.2          nlme_3.1-137      git2r_0.23.0     
+[55] compiler_3.5.0   </code></pre>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
