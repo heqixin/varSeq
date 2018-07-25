@@ -1,8 +1,10 @@
 ---
-title: "Var-repeatability"
+title: "Analysis"
 author: "Qixin He"
 date: "7/23/2018"
-output: html_document
+output:
+  workflowr::wflow_html:
+    toc: false
 ---
 
 ```{r setup, include=FALSE}
