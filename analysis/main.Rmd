@@ -14,23 +14,43 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(tidyverse)
 ```
+## cluster seqs using clusterDBLa
+```{bash, eval = FALSE}
+python /Users/Qixin/Dropbox/Shai/S1-S4/clusterDBLalpha-master/clusterDBLa.py \
+  -o data/ \
+  -r data/RepeatSeqs.fasta \
+  --cpu 20
+```
+
+
 ## load var repeatability table
 ```{r var}
-repSeq<-read.table("~/Dropbox/Shazia/varSeq-repeatability/data/RepeatSeqs_renamed_otuTable.txt", header = T, sep = "\t")
+repSeq<-read.table("data/RepeatSeqs_renamed_otuTable.txt", header = T, sep = "\t")
 repSeq<-as.tibble(repSeq)
 S1Rep<-repSeq %>% select(contains("S1MRS"))
 S2Rep<-repSeq %>% select(contains("S2MRS"))
 ```
 
-```{r, echo=FALSE}
+```{r analysis, echo=FALSE}
 outStat<-c()
 for (i in 1:ncol(repSeq)){
+  
   subS1<-repSeq %>% select(contains(strsplit(colnames(repSeq)[i], "[.]")[[1]][1]))
   if(ncol(subS1)>=2){
     print(colnames(repSeq)[i])
     subS1<-subS1[rowSums(subS1)>0,]
     if (ncol(subS1)==3){
-      subS1<-subS1[,colSums(subS1)>min(colSums(subS1))]
+      temp = colSums(subS1)
+      cold = (temp[1]/temp[2])^((temp[1]<temp[2])-0.5)*2
+      toSelect = c(1,2)
+      for(i in 1:2){
+          cnew = (temp[i]/temp[3])^((temp[i]<temp[3])-0.5)*2
+         if(cnew>cold){
+           toSelect = c(i,3)
+           cold = cnew
+         }
+      }
+       subS1<-subS1[,toSelect]
     }
     print(ncol(subS1))
     common<-sum(subS1[,1]*subS1[,2])
@@ -52,8 +72,22 @@ outStat<-type_convert(outStat)
 outStatF<-outStat %>% filter(Acommon>40, Bcommon>40) %>% mutate(PTS=common*2/(Acommon+Bcommon)) %>%
   arrange(Acommon+Bcommon)
 
+
+png(filename="output/repeatabilityVar_new.png",width=800,height=600)
 barplot(t(outStatF[,1:3]),horiz=T, legend.text=c("shared","unique in Repeat 1","unique in Repeat 2"), axes = F,args.legend = list(x = "bottomright"),xlab="number of var types",main = "repeatability of var illumina sequencing protocol")
-axis(1,at=(0:12)*60)
-abline(v=(1:12)*60,lty=3)
+axis(1,at=(0:ceiling(max(rowSums(outStatF[,1:3]))/60))*60)
+abline(v=(1:ceiling(max(rowSums(outStatF[,1:3]))/60))*60,lty=3)
+dev.off()
 ```
+
+#a histogram with error bars (i.e., incorporating 100 simulated runs of the Ghana seasonal transmissions, immune selection and generalized immunity) to show the bimodality in children in immune selection, but not in generalized immunity.
+
+```{r, echo=FALSE}
+allPTSAge<-read.table("data/ghanaSeason_PTSbyAgeStat.txt", sep="\t",header=T)
+allPTSAge<-as.tibble(allPTSAge)
+allPTSAge$ageGroup.x<-factor(allPTSAge$ageGroup.x, levels(allPTSAge$ageGroup.x)[c(1,5,3,4,2)])
+allPTSAge%>% filter(PTScat<0.6)%>%
+ggplot(aes(as.factor(PTScat), Density)) +geom_boxplot(aes( color = scenario))+facet_grid(ageGroup.x~.)+labs(x="PTS", y = "density") + scale_color_manual(values = c("blue", "maroon"), breaks = c("sel_ghanaSeason","general_ghanaSeason"), labels=c("immune selection", "generalized immunity"))+theme(legend.position="bottom") +theme_classic()
+```
+
 
