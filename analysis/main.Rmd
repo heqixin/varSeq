@@ -24,14 +24,14 @@ python /Users/Qixin/Dropbox/Shai/S1-S4/clusterDBLalpha-master/clusterDBLa.py \
 
 
 ## load var repeatability table
-```{r var}
+```{r var, echo=TRUE}
 repSeq<-read.table("data/RepeatSeqs_renamed_otuTable.txt", header = T, sep = "\t")
 repSeq<-as.tibble(repSeq)
 S1Rep<-repSeq %>% select(contains("S1MRS"))
 S2Rep<-repSeq %>% select(contains("S2MRS"))
 ```
 
-```{r analysis, echo=FALSE}
+```{r analysis, echo=TRUE}
 outStat<-c()
 for (i in 1:ncol(repSeq)){
   
