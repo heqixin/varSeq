@@ -4,7 +4,7 @@ author: "Qixin He"
 date: "7/23/2018"
 output:
   workflowr::wflow_html:
-    toc: false
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -85,8 +85,8 @@ abline(v=(1:ceiling(max(rowSums(outStatF[,1:3]))/60))*60,lty=3)
 dev.off()
 ```
 
-#a histogram with error bars 
-##(i.e., incorporating 100 simulated runs of the Ghana seasonal transmissions, immune selection and generalized immunity) to show the bimodality in children in immune selection, but not in generalized immunity.
+##a histogram with error bars 
+(i.e., incorporating 100 simulated runs of the Ghana seasonal transmissions, immune selection and generalized immunity) to show the bimodality in children in immune selection, but not in generalized immunity.
 
 ```{r, echo=FALSE}
 allPTSAge<-read.table("data/ghanaSeason_PTSbyAgeStat.txt", sep="\t",header=T)
